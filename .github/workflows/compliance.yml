@@ -1,0 +1,32 @@
+name: Cloud Compliance Validator
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 6 * * *"
+
+jobs:
+  compliance-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install boto3 checkov
+
+      - name: Run compliance checker
+        run: python compliance_checker.py
+
+      - name: Run Checkov IaC scan
+        run: checkov -d . --framework terraform --soft-fail
