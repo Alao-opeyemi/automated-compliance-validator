@@ -1,6 +1,7 @@
 import boto3
 import json
-from datetime import datetime
+from datetime import datetime, timezone
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 
 def check_s3_compliance():
@@ -69,14 +70,18 @@ def check_s3_compliance():
     return findings
 
 
-def write_report(findings):
+def write_report(findings, warnings=None, scan_status="COMPLETED"):
+    warnings = warnings or []
+
     report = {
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "scan_status": scan_status,
         "standards_checked": ["NIST 800-53 Rev 5", "ISO 27001", "SOC 2", "PCI-DSS"],
         "total_findings": len(findings),
         "critical": len([finding for finding in findings if finding["severity"] == "CRITICAL"]),
         "high": len([finding for finding in findings if finding["severity"] == "HIGH"]),
         "medium": len([finding for finding in findings if finding["severity"] == "MEDIUM"]),
+        "warnings": warnings,
         "findings": findings,
     }
 
@@ -87,4 +92,11 @@ def write_report(findings):
 
 
 if __name__ == "__main__":
-    write_report(check_s3_compliance())
+    try:
+        write_report(check_s3_compliance())
+    except (NoCredentialsError, PartialCredentialsError):
+        write_report(
+            [],
+            warnings=["AWS credentials were not provided. The live S3 compliance scan was skipped."],
+            scan_status="SKIPPED",
+        )
