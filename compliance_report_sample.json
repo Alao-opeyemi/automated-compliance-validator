@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-01T12:00:00Z",
+  "generated_at": "2026-01-02T12:00:00Z",
   "standards_checked": ["NIST 800-53", "ISO 27001", "SOC 2", "PCI-DSS"],
   "total_findings": 3,
   "critical": 1,
